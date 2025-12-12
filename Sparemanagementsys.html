@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avaada Electro - Spare Management System</title>
+  <link rel="stylesheet" href="Styles.css">
+
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Avaada Electro</h1>
+    <h2>Spare Management System</h2>
+  </div>
+
+  <!-- Google Form Container -->
+  <div class="container">
+    <h2>📋 Spare Consumption Form</h2>
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScgE2k4-NdemM-so_Qcaaamn7mJmHS01iH0GRZOPbITHTDFIA/viewform?embedded=true">
+      Loading…
+    </iframe>
+  </div>
+
+  <!-- Spare Search -->
+  <div class="container">
+    <h2>📊 Spare Management System</h2>
+
+    <div class="search-box">
+      <input type="text" id="searchQuery" placeholder="Search term...">
+      <button onclick="searchData()">🔍 Search</button>
+    </div>
+
+    <div id="output">Results will appear here...</div>
+  </div>
+
+  <!-- Spare Request Form -->
+  <div class="container">
+    <h2>📝 Spare Request Form</h2>
+    <form id="spareForm">
+      
+      <label>Spare Part Name</label>
+      <input type="text" id="partName" required>
+
+      <label>Quantity</label>
+      <input type="number" id="quantity" required>
+
+      <label>Model Number</label>
+      <input type="text" id="modelNumber" required>
+
+      <label>Machine Name</label>
+      <input type="text" id="machineName" required>
+
+      <label>Remarks</label>
+      <textarea id="remarks"></textarea>
+
+      <button type="submit">Submit Request</button>
+    </form>
+  </div>
+
+
+<script>
+  const requestScriptURL = "https://script.google.com/macros/s/AKfycby7HZkPYTfSeXU5gYm2d3UrVD4rTtc_T2HgxLux8yWIS749QWe7ebIpsu44k_fyf6s/exec";
+  const managementScriptURL = "https://script.google.com/macros/s/AKfycbwUY20o0Nq2yLfAnpeb7oifqXuFlqOoqNeaCqpZnu2UfN2WA5rUIY07SJ1w15a2QU1N/exec";
+
+  // Submit Spare Request
+  document.getElementById("spareForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const data = {
+      partName: partName.value,
+      quantity: quantity.value,
+      modelNumber: modelNumber.value,
+      machineName: machineName.value,
+      remarks: remarks.value
+    };
+
+    fetch(requestScriptURL, {
+      method: "POST",
+      body: JSON.stringify(data)
+    })
+    .then(r => r.text())
+    .then(() => {
+      alert("✅ Request submitted successfully!");
+      spareForm.reset();
+    })
+    .catch(err => alert("❌ Error: " + err));
+  });
+
+  // Search Data
+  function searchData() {
+    const query = document.getElementById("searchQuery").value;
+
+    fetch(managementScriptURL + `?action=search&query=${encodeURIComponent(query)}`)
+      .then(res => res.text())
+      .then(data => {
+        try {
+          renderTable(JSON.parse(data));
+        } catch {
+          output.innerText = data;
+        }
+      });
+  }
+
+  // Render editable table
+  function renderTable(rows) {
+    let html = `<div class="table-container"><table><thead><tr>`;
+    
+    rows[0].forEach(h => html += `<th>${h}</th>`);
+    html += `<th>Action</th></tr></thead><tbody>`;
+
+    for (let i = 1; i < rows.length; i++) {
+      const serial = rows[i][0];
+      html += `<tr id="row-${i}">`;
+
+      rows[i].forEach((cell, j) => {
+        html += j === 0
+          ? `<td>${cell}</td>`
+          : `<td><input type="text" value="${cell}" id="cell-${i}-${j}"></td>`;
+      });
+
+      html += `<td><button class="update-btn">Update</button></td></tr>`;
+    }
+
+    html += "</tbody></table></div>";
+    output.innerHTML = html;
+  }
+</script>
+
+</body>
+</html>
